@@ -13,6 +13,17 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'sans': ['Roboto', 'Noto Sans', 'sans-serif'],
+        'heading': ['Inter', 'Noto Sans', 'sans-serif'],
+        'body': ['Roboto', 'Noto Sans', 'sans-serif'],
+      },
+      minHeight: {
+        'touch-target': '44px',
+      },
+      minWidth: {
+        'touch-target': '44px',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
