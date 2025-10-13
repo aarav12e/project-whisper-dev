@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { WifiOff, Wifi } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { WifiOff, Wifi, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useAutoSync } from "@/hooks/useAutoSync";
 
 export const OfflineIndicator = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { isSyncing, totalPending } = useAutoSync();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -19,24 +21,27 @@ export const OfflineIndicator = () => {
   }, []);
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
-        isOnline
-          ? "bg-success/10 text-success"
-          : "bg-destructive/10 text-destructive"
+    <div className="flex items-center gap-2">
+      <Badge variant={isOnline ? "default" : "secondary"} className="gap-1">
+        {isOnline ? (
+          <>
+            <Wifi className="h-3 w-3" />
+            Online
+          </>
+        ) : (
+          <>
+            <WifiOff className="h-3 w-3" />
+            Offline
+          </>
+        )}
+      </Badge>
+      {isSyncing && (
+        <RefreshCw className="h-4 w-4 animate-spin text-primary" />
       )}
-    >
-      {isOnline ? (
-        <>
-          <Wifi className="h-3 w-3" />
-          <span>Online</span>
-        </>
-      ) : (
-        <>
-          <WifiOff className="h-3 w-3" />
-          <span>Offline</span>
-        </>
+      {totalPending > 0 && (
+        <Badge variant="outline" className="gap-1 text-warning">
+          {totalPending} pending
+        </Badge>
       )}
     </div>
   );
