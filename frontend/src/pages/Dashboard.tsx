@@ -1,27 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 import { UserPlus, Search, FileText, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import type { Patient, Visit } from "@/lib/types";
+import { gsap } from "gsap";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const [patientCount, setPatientCount] = useState(0);
   const [visitCount, setVisitCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const activitiesRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    Promise.all([api.patients.list(), api.visits.list()])
-      .then(([patients, visits]) => {
+    const loadData = async () => {
+      try {
+        const [patients, visits] = await Promise.all([api.patients.list(), api.visits.list()]);
         setPatientCount(patients.length);
         setVisitCount(visits.length);
-      })
-      .catch((error) => {
+        toast.success("Dashboard data loaded successfully!");
+      } catch (error) {
         console.error("Failed to load dashboard data:", error);
-      })
-      .finally(() => setLoading(false));
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    const tl = gsap.timeline();
+    tl.fromTo(headerRef.current, { y: -50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 })
+      .fromTo(statsRef.current, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5 }, "-=0.3")
+      .fromTo(actionsRef.current, { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, "-=0.3")
+      .fromTo(activitiesRef.current, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.3");
   }, []);
 
   const stats = [
@@ -43,19 +64,20 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="bg-primary text-primary-foreground p-4 shadow-md">
+      <header ref={headerRef} className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="max-w-screen-xl mx-auto">
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-2xl font-heading font-bold">Welcome, Priya</h1>
               <p className="text-sm opacity-90">ASHA Worker</p>
             </div>
+            <ModeToggle />
           </div>
         </div>
       </header>
 
       <div className="max-w-screen-xl mx-auto p-4 space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div ref={statsRef} className="grid grid-cols-2 gap-4">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
@@ -76,7 +98,7 @@ const Dashboard = () => {
           })}
         </div>
 
-        <div>
+        <div ref={actionsRef}>
           <h2 className="text-lg font-heading font-semibold mb-3">Quick Actions</h2>
           <div className="grid grid-cols-3 gap-3">
             {quickActions.map((action) => {
@@ -96,7 +118,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div>
+        <div ref={activitiesRef}>
           <h2 className="text-lg font-heading font-semibold mb-3">Recent Activities</h2>
           <Card>
             <CardContent className="p-0">
